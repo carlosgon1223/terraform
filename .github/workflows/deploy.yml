@@ -1,4 +1,4 @@
-name: Deploy to Google Cloud
+name: Terraform
 
 on:
   push:
@@ -6,30 +6,28 @@ on:
       - master
 
 jobs:
-  deploy:
+  terraform:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
 
-    - name: Install Terraform
-      uses: hashicorp/setup-terraform@v1
+      - name: Configure GCP credentials
+        run: |
+          echo "${{ secrets.GCP_CREDENTIALS }}" > $HOME/gcp-key.json
+        shell: bash
 
-    - name: Authenticate to Google Cloud
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
-      run: echo "${{ secrets.GCP_CREDENTIALS }}" > $GOOGLE_APPLICATION_CREDENTIALS
+      - name: Set GOOGLE_APPLICATION_CREDENTIALS
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcp-key.json" >> $GITHUB_ENV
 
-    - name: Initialize Terraform
-      run: terraform init
-      working-directory: ./terraform
+      - name: Terraform Init
+        run: terraform init
 
-    - name: Apply Terraform
-      run: terraform apply -auto-approve
-      working-directory: ./terraform
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
