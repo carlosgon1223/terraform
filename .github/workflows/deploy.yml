@@ -27,4 +27,4 @@ jobs:
     - name: Terraform Apply
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
-      run: terraform apply -auto-approve -var="google_credentials=${{ secrets.GCP_CREDENTIALS }}"
+      run: terraform apply -auto-approve -var="google_credentials=${{ runner.temp }}/terraform-key.json"
